@@ -12,9 +12,9 @@ on:
     inputs:
       architectures:
         description: "CPU architectures to build"
-        default: "arm64-v8a"
+        default: "arm64-v8a,armeabi-v7a"
         type: choice
-        options: ["arm64-v8a", "arm64-v8a,armeabi-v7a"]
+        options: ["arm64-v8a,armeabi-v7a", "arm64-v8a"]
 
 concurrency:
   group: android-${{ github.ref }}
@@ -106,8 +106,9 @@ jobs:
           # The generated file has no trailing newline: start on a new line.
           printf '\norg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g\nkotlin.daemon.jvmargs=-Xmx2g\norg.gradle.workers.max=3\n' >> gradle.properties
           tail -4 gradle.properties
-          # arm64 covers every phone from about 2017 on; run the workflow by hand to add armv7.
-          ./gradlew :app:assembleRelease -PreactNativeArchitectures=${{ inputs.architectures || 'arm64-v8a' }} --no-daemon --build-cache
+          # armv7 too: many phones on Android 8-10 run a 32-bit system on a 64-bit chip and can't
+          # install an arm64-only APK. Run the workflow by hand with arm64 only for a quicker build.
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=${{ inputs.architectures || 'arm64-v8a,armeabi-v7a' }} --no-daemon --build-cache
 
       - name: Name the APK
         run: |
