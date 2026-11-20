@@ -1,5 +1,5 @@
 import { Stack } from "expo-router/js-stack";
-import { useWindowDimensions, type Animated } from "react-native";
+import { Platform, useWindowDimensions, type Animated } from "react-native";
 
 import { colors } from "@/ui/theme";
 
@@ -40,6 +40,8 @@ function card({
       // A soft shadow down the moving page's edge (Android draws it from elevation).
       elevation: 14,
       shadowColor: "#000",
+      // iOS needs the rest spelled out (and the shadow cast left, onto the page behind).
+      ...(Platform.OS === "ios" ? { shadowOffset: { width: -2, height: 0 }, shadowRadius: 10, shadowOpacity: 0.35 } : null),
     },
     overlayStyle: {
       opacity: current.progress.interpolate({ inputRange: [0, 1], outputRange: [0, 0.38], extrapolate: "clamp" }),

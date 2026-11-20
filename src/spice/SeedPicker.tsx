@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
 import Animated, { FadeIn, LinearTransition, ZoomIn, ZoomOut } from "react-native-reanimated";
 
 import { Api } from "@/api/endpoints";
@@ -18,6 +18,7 @@ import { Press } from "@/ui/Press";
 import { Screen } from "@/ui/Screen";
 import { Spinner } from "@/ui/Spinner";
 import { Text } from "@/ui/Text";
+import { iosShadow } from "@/ui/shadow";
 import { colors, fonts } from "@/ui/theme";
 import { autoName, useSpiceDraft } from "./draft";
 import { SpiceArt } from "./SpiceArt";
@@ -108,7 +109,7 @@ export function SeedPicker({ spice }: { spice?: Spice }) {
   };
 
   return (
-    <KeyboardAvoidingView behavior="height" style={{ flex: 1 }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <Screen back keyboardShouldPersistTaps="handled">
         <View style={{ paddingTop: 8, marginBottom: 24 }}>
           <Text variant="subhead" weight={600} color={colors.tint}>
@@ -241,6 +242,7 @@ export function SeedPicker({ spice }: { spice?: Spice }) {
           alignItems: "center",
           gap: 12,
           elevation: 16,
+          ...iosShadow(16),
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: "rgba(255,255,255,0.08)",
         }}

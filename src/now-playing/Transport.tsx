@@ -3,6 +3,7 @@ import { View, type LayoutChangeEvent } from "react-native";
 import { Gesture, GestureDetector, type GestureType } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useFrameCallback, useSharedValue, withTiming } from "react-native-reanimated";
 
+import { frameLoop } from "@/lib/frames";
 import { haptic } from "@/lib/haptics";
 import { time } from "@/lib/format";
 import { readPosition, usePlayback } from "@/player/hooks";
@@ -27,12 +28,10 @@ export function Progress({ sheetPan }: { sheetPan?: GestureType }) {
   const scrubbingJs = useRef(false);
   const thick = useSharedValue(5);
 
-  // Read the playhead on the JS thread at ~30fps; fill on the UI thread.
+  // Read the playhead on the JS thread at ~30fps; fill on the UI thread. On screen only.
   useEffect(() => {
-    let raf = 0;
     let last = 0;
     const loop = (t: number) => {
-      raf = requestAnimationFrame(loop);
       if (t - last < 33) return;
       last = t;
       const p = readPosition();
@@ -46,8 +45,7 @@ export function Progress({ sheetPan }: { sheetPan?: GestureType }) {
         }
       }
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return frameLoop(loop);
   }, [pb.song?.durationMs, fraction]);
 
   const setScrub = (on: boolean) => {

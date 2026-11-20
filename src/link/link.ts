@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import * as Device from "expo-device";
-import { AppState } from "react-native";
+import { AppState, Platform } from "react-native";
 import { create } from "zustand";
 
 import { serverOrigin } from "@/api/client";
@@ -24,7 +24,7 @@ export const deviceId: string = (() => {
 
 export const deviceKind: DeviceKind = Device.deviceType === Device.DeviceType.TABLET ? "tablet" : "phone";
 
-/** The phone's own name (Settings › About), else its model, else "Android phone". */
+/** The phone's own name (Settings › About), else its model, else "Android phone" (or "iPhone"). */
 export function deviceName(): string {
   const custom = kv.get<string | null>("link.name", null);
   if (custom) return custom;
@@ -32,6 +32,7 @@ export function deviceName(): string {
   if (own && !/^sdk_|^generic|_/.test(own)) return own.slice(0, 60);
   const model = Device.modelName?.trim();
   if (model && !/^sdk_|^generic|_/.test(model)) return model.slice(0, 60);
+  if (Platform.OS === "ios") return deviceKind === "tablet" ? "iPad" : "iPhone";
   return deviceKind === "tablet" ? "Android tablet" : "Android phone";
 }
 

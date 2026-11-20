@@ -1,6 +1,10 @@
 {
-  "platforms": ["android"],
+  "platforms": ["android", "apple"],
   "android": {
     "modules": ["com.ceccun.harmoni.player.HarmoniPlayerModule"]
+  },
+  "apple": {
+    "modules": ["HarmoniPlayerModule"],
+    "appDelegateSubscribers": ["HarmoniAppDelegate"]
   }
 }

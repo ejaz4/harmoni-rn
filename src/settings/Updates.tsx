@@ -1,6 +1,6 @@
 import Native from "harmoni-player";
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 
 import { bytes, shortDate } from "@/lib/format";
 import { SmallButton, Switch } from "@/ui/bits";
@@ -23,7 +23,7 @@ function checkedAgo(at: number) {
 export function Updates() {
   const s = useUpdate();
   const [auto, setAuto] = useKvSwitch("settings.autoUpdate", true);
-  const version = `Harmoni for Android ${currentVersion}${currentBuild ? ` (${currentBuild})` : ""}`;
+  const version = `Harmoni for ${Platform.OS === "ios" ? "iOS" : "Android"} ${currentVersion}${currentBuild ? ` (${currentBuild})` : ""}`;
   if (!updatesHere()) {
     return (
       <Group>

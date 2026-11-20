@@ -4,6 +4,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { serverOrigin } from "@/api/client";
 import { Text } from "@/ui/Text";
+import { iosShadow } from "@/ui/shadow";
 import { colors, fonts } from "@/ui/theme";
 import { inkFor } from "./style";
 
@@ -82,7 +83,7 @@ export const Avatar = memo(function Avatar({
           padding: gap,
           backgroundColor: colors.bg,
         },
-        { elevation: 18, shadowColor: "#000" },
+        { elevation: 18, shadowColor: "#000", ...iosShadow(18) },
         style,
       ]}
     >

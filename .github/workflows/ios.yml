@@ -1,0 +1,93 @@
+name: iOS
+
+# An unsigned IPA. It installs once a sideloading tool (AltStore, SideStore, Sideloadly)
+# re-signs it with the person's own Apple ID.
+#   - Pull requests and manual runs: Actions › the run › Artifacts (the .ipa itself).
+#   - A published release (scripts/release.sh makes them, with the APK): the IPA is built
+#     from the release's tag, versioned to match, and added to the release.
+on:
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ipa:
+    runs-on: macos-26
+    timeout-minutes: 90
+    permissions:
+      contents: write # to add the IPA to a release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            # v1.0.<n>, as scripts/release.sh tags it: the same version and build number as the APK.
+            tag="${{ github.event.release.tag_name }}"
+            echo "APP_VERSION=${tag#v}" >> "$GITHUB_ENV"
+            echo "VERSION_CODE=${tag##*.}" >> "$GITHUB_ENV"
+          else
+            echo "APP_VERSION=1.0.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+            echo "VERSION_CODE=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          fi
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable # SDK 58 needs Xcode 26.4+
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Generate the iOS project
+        # Also runs pod install.
+        run: CI=1 bunx expo prebuild --platform ios
+
+      - name: Build
+        run: |
+          workspace=$(ls -d ios/*.xcworkspace | head -1)
+          scheme=$(basename "$workspace" .xcworkspace)
+          echo "Building $scheme $APP_VERSION ($VERSION_CODE)"
+          xcodebuild build \
+            -workspace "$workspace" -scheme "$scheme" \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            > build.log 2>&1 || { grep -n "error:" build.log | head -60; tail -120 build.log; exit 1; }
+          tail -5 build.log
+
+      - name: Package the IPA
+        # An IPA is a zip of Payload/<app>.app.
+        run: |
+          app=$(ls -d build/Build/Products/Release-iphoneos/*.app | head -1)
+          mkdir -p dist/Payload
+          cp -R "$app" dist/Payload/
+          (cd dist && zip -qry "harmoni-${APP_VERSION}.ipa" Payload && rm -rf Payload)
+          ls -la dist
+
+      # Uploaded as the .ipa itself (an IPA is already a zip), so the download is ready to sideload.
+      # Unarchived, the artifact takes the file's name: harmoni-<version>.ipa.
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/harmoni-${{ env.APP_VERSION }}.ipa
+          archive: false
+          if-no-files-found: error
+
+      - name: Add to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "dist/harmoni-${APP_VERSION}.ipa" --repo "${{ github.repository }}" --clobber

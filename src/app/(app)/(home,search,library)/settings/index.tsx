@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 
 import { Avatar } from "@/profile/Avatar";
 import { Group, Row } from "@/settings/parts";
@@ -38,7 +38,7 @@ function useCategories(): { heading?: string; categories: Category[] }[] {
       categories: [
         { label: "Downloads & data", icon: "download", href: "/settings/downloads" },
         { label: "Look & feel", icon: "palette", href: "/settings/feel" },
-        { label: "Controls & widget", icon: "phone", href: "/settings/controls" },
+        { label: Platform.OS === "android" ? "Controls & widget" : "Controls", icon: "phone", href: "/settings/controls" },
         { label: "Updates", icon: "refresh", href: "/settings/updates" },
       ],
     },

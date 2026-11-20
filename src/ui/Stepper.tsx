@@ -4,6 +4,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { haptic } from "@/lib/haptics";
+import { iosShadow } from "./shadow";
 import { colors } from "./theme";
 
 /** A stepped slider (like an <input type="range" step>): a tick under the finger at each step. */
@@ -43,7 +44,7 @@ export function Stepper({ value, min, max, onChange, label }: { value: number; m
         <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surface3, overflow: "hidden" }}>
           <Animated.View style={[{ height: 6, backgroundColor: colors.accent }, fill]} />
         </View>
-        <Animated.View style={[{ position: "absolute", left: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.accent, elevation: 3 }, knob]} />
+        <Animated.View style={[{ position: "absolute", left: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.accent, elevation: 3, ...iosShadow(3) }, knob]} />
       </View>
     </GestureDetector>
   );

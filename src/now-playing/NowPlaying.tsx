@@ -38,6 +38,7 @@ import { Icon, type IconName } from "@/ui/Icon";
 import { toast } from "@/ui/overlays";
 import { Press } from "@/ui/Press";
 import { Text } from "@/ui/Text";
+import { iosShadow } from "@/ui/shadow";
 import { spring } from "@/ui/theme";
 import { FadeMask } from "@/ui/FadeMask";
 import { Backdrop } from "./Backdrop";
@@ -555,7 +556,7 @@ function ArtStage({ song, quiet, panel, compact }: { song: QueueSong; quiet?: st
         {/* Measured here, where nothing moves it: measureInWindow counts transforms, so measuring the
             artwork itself while it was shrunk (paused) or flown to the title put it off from then on. */}
         <View ref={ref} collapsable={false} onLayout={measure}>
-          <Animated.View style={[{ elevation: 28, shadowColor: "#000", borderRadius: 12, transformOrigin: "0% 0%" }, artStyle]}>
+          <Animated.View style={[{ elevation: 28, shadowColor: "#000", ...iosShadow(28), borderRadius: 12, transformOrigin: "0% 0%" }, artStyle]}>
             <Press onLongPress={() => openSongMenu(song, [], { fromNowPlaying: true })} feedback={false} scaleTo={1}>
               <Animated.View style={[{ overflow: "hidden" }, artRadius]}>
                 <Artwork url={song.artworkUrl} size={art} radius={0} px={900} priority="high" />

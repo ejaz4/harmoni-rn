@@ -9,7 +9,7 @@ import { Icon } from "@/ui/Icon";
 import { toast } from "@/ui/overlays";
 import { IconButton, Press } from "@/ui/Press";
 import { Text } from "@/ui/Text";
-import { colors } from "@/ui/theme";
+import { colors, monospace } from "@/ui/theme";
 import { Group, Row } from "./parts";
 
 function ago(iso: string | null) {
@@ -64,7 +64,7 @@ export function Invites() {
       {mine.map((i) => {
         const expired = !!i.expiresAt && Date.parse(i.expiresAt) < Date.now();
         return (
-          <Row key={i.code} title={<Text style={{ fontFamily: "monospace", letterSpacing: 1 }}>{i.code}</Text>} note={status(i)}>
+          <Row key={i.code} title={<Text style={{ fontFamily: monospace, letterSpacing: 1 }}>{i.code}</Text>} note={status(i)}>
             {!i.usedAt && !expired ? (
               <IconButton label="Copy link" size={36} onPress={() => copy(i.code)}>
                 <Icon name="copy" size={19} color={colors.text2} />

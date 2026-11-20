@@ -26,6 +26,7 @@ import { Material } from "@/ui/Material";
 import { Press } from "@/ui/Press";
 import { Spinner } from "@/ui/Spinner";
 import { Text } from "@/ui/Text";
+import { iosShadow } from "@/ui/shadow";
 import { colors, spring } from "@/ui/theme";
 import { MINI, TABS } from "./layout";
 import { sheetProgress } from "./sheet";
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(255,255,255,0.08)",
   },
-  miniArt: { borderRadius: 8, elevation: 6, shadowColor: "#000" },
+  miniArt: { borderRadius: 8, elevation: 6, shadowColor: "#000", ...iosShadow(6) },
   miniBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   progressTrack: {
     position: "absolute",

@@ -1,6 +1,6 @@
 import Native from "harmoni-player";
 import { useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 
 import { Api } from "@/api/endpoints";
 import { kv } from "@/lib/storage";
@@ -13,6 +13,9 @@ import { toast } from "@/ui/overlays";
 import { Stepper } from "@/ui/Stepper";
 import { Text } from "@/ui/Text";
 import { colors } from "@/ui/theme";
+
+/** iOS's player can't skip silence, and iOS always stops an app's music when it's swiped away. */
+const ANDROID = Platform.OS === "android";
 
 export default function PlaybackSettings() {
   const me = useSession((s) => s.me);
@@ -81,20 +84,24 @@ export default function PlaybackSettings() {
       </Group>
 
       <Group title="Sound" here>
-        <Row first title="Skip silence" note="Trim the quiet at the start and end of songs.">
-          <Switch value={skipSilence} onChange={setSkipSilence} />
-        </Row>
-        <Row title="Play alongside other apps" note="Keep playing when another app makes a sound, instead of pausing.">
+        {ANDROID ? (
+          <Row first title="Skip silence" note="Trim the quiet at the start and end of songs.">
+            <Switch value={skipSilence} onChange={setSkipSilence} />
+          </Row>
+        ) : null}
+        <Row first={!ANDROID} title="Play alongside other apps" note="Keep playing when another app makes a sound, instead of pausing.">
           <Switch value={alongside} onChange={setAlongside} />
         </Row>
         {Native.hasEqualizer() ? <Row title="Equalizer" note="Shape the sound with your phone's equalizer." onPress={() => Native.openEqualizer()} /> : null}
       </Group>
 
-      <Group title="When you leave" here>
-        <Row first title="Stop when swiped away" note="Swiping Harmoni out of your recent apps stops the music too.">
-          <Switch value={stopOnSwipe} onChange={setStopOnSwipe} />
-        </Row>
-      </Group>
+      {ANDROID ? (
+        <Group title="When you leave" here>
+          <Row first title="Stop when swiped away" note="Swiping Harmoni out of your recent apps stops the music too.">
+            <Switch value={stopOnSwipe} onChange={setStopOnSwipe} />
+          </Row>
+        </Group>
+      ) : null}
 
       <Group title="Lyrics" here>
         <Row first title="Keep screen on" note="Stop the screen dimming while lyrics are open.">

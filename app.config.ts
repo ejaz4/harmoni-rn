@@ -13,6 +13,13 @@ const LINK_PATHS = ["/u/", "/song/", "/playlist/", "/spice/", "/album/", "/artis
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...(config as ExpoConfig),
   version: process.env.APP_VERSION || config.version,
+  ios: {
+    ...config.ios,
+    buildNumber: String(process.env.VERSION_CODE || config.ios?.buildNumber || 1),
+    // The same links on iOS (Universal Links): the server publishes
+    // /.well-known/apple-app-site-association. Needs a signed build to take effect.
+    associatedDomains: LINK_HOSTS.map((host: string) => `applinks:${host}`),
+  },
   android: {
     ...config.android,
     versionCode: Number(process.env.VERSION_CODE || config.android?.versionCode || 1),

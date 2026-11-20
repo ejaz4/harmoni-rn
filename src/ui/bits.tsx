@@ -17,6 +17,7 @@ import { Icon, type IconName } from "./Icon";
 import { Press } from "./Press";
 import { Spinner } from "./Spinner";
 import { Text } from "./Text";
+import { iosShadow } from "./shadow";
 import { colors } from "./theme";
 
 /**
@@ -236,6 +237,7 @@ export function PlayButton({
         alignItems: "center",
         justifyContent: "center",
         elevation: flat ? 0 : 6,
+        ...iosShadow(flat ? 0 : 6),
         shadowColor: "#000",
       }}
     >

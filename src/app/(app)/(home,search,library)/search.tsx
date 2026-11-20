@@ -25,6 +25,7 @@ import { Icon } from "@/ui/Icon";
 import { Press } from "@/ui/Press";
 import { PageTitle, Screen, TopBar } from "@/ui/Screen";
 import { Kicker, Text } from "@/ui/Text";
+import { iosShadow } from "@/ui/shadow";
 import { colors, fonts, radius } from "@/ui/theme";
 import { kv } from "@/lib/storage";
 
@@ -317,7 +318,7 @@ function HeroCard({
       scaleTo={0.98}
       style={{ padding: 20, borderRadius: radius.xl, backgroundColor: theme?.color ?? colors.surface2, gap: 20 }}
     >
-      <View style={{ elevation: round ? 10 : 0, shadowColor: "#000", alignSelf: "flex-start", borderRadius: round ? 68 : 16 }}>
+      <View style={{ elevation: round ? 10 : 0, shadowColor: "#000", ...iosShadow(round ? 10 : 0), alignSelf: "flex-start", borderRadius: round ? 68 : 16 }}>
         <Artwork url={art} source={source} size={136} round={round} radius={16} fallback={round ? "user" : "music"} />
       </View>
       <View style={{ paddingRight: 64, gap: 6 }}>

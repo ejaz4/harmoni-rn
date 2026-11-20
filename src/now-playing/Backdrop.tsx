@@ -1,22 +1,39 @@
+import {
+  Blur,
+  Canvas,
+  ColorMatrix,
+  Group,
+  Image as SkiaImage,
+  Paint,
+  rect,
+  rrect,
+  useImage,
+  type SkImage,
+  type Transforms3d,
+} from "@shopify/react-native-skia";
 import { Image } from "expo-image";
 import { memo, useEffect, useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
   FadeOut,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
   interpolateColor,
+  type SharedValue,
 } from "react-native-reanimated";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import type { ArtworkColors } from "harmoni-player";
 import { sized } from "@/ui/Artwork";
 import { bass } from "./bass";
+
+const IOS = Platform.OS === "ios";
 
 /** The bass, shaped so kicks stand out and the hum underneath doesn't. */
 function kick(b: number) {
@@ -59,7 +76,7 @@ export const Backdrop = memo(function Backdrop({ art, theme }: { art?: string; t
     <Animated.View style={[StyleSheet.absoluteFill, baseStyle]} pointerEvents="none">
       {layers.map((l) => (
         <Animated.View key={l.key} entering={FadeIn.duration(1400)} exiting={FadeOut.duration(1400)} style={StyleSheet.absoluteFill}>
-          <Blobs art={l.art} />
+          {IOS ? <SkiaBlobs art={l.art} /> : <Blobs art={l.art} />}
         </Animated.View>
       ))}
       <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: "50% 100%" }, glow]}>
@@ -89,9 +106,8 @@ export const Backdrop = memo(function Backdrop({ art, theme }: { art?: string; t
   );
 });
 
-function Blobs({ art }: { art: string }) {
-  const { width, height } = useWindowDimensions();
-  const vmax = Math.max(width, height) / 100;
+/** The three blobs' clocks: two slow turns and a drift back and forth. */
+function useBlobClocks() {
   const t1 = useSharedValue(0);
   const t2 = useSharedValue(0);
   const t3 = useSharedValue(0);
@@ -107,6 +123,13 @@ function Blobs({ art }: { art: string }) {
       false,
     );
   }, [t1, t2, t3]);
+  return { t1, t2, t3 };
+}
+
+function Blobs({ art }: { art: string }) {
+  const { width, height } = useWindowDimensions();
+  const vmax = Math.max(width, height) / 100;
+  const { t1, t2, t3 } = useBlobClocks();
   const turn = (t: number, reverse: boolean, swell: number) => {
     "worklet";
     const scale = (1 + 0.12 * Math.sin(Math.PI * t)) * (1 + swell);
@@ -174,5 +197,88 @@ function Blobs({ art }: { art: string }) {
         <Image source={src} style={StyleSheet.absoluteFill} contentFit="cover" blurRadius={12} />
       </Animated.View>
     </View>
+  );
+}
+
+/** CSS's saturate(s) as a colour matrix. */
+function saturate(s: number) {
+  return [
+    0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s, 0, 0,
+    0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s, 0, 0,
+    0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+}
+const SATURATE = saturate(1.8);
+
+/**
+ * `Blobs` for iOS, where React Native has no blur or saturate filter: the same three covers,
+ * placed and moving the same way, drawn with Skia under Android's blur(60) and saturate(1.8).
+ */
+function SkiaBlobs({ art }: { art: string }) {
+  const { width, height } = useWindowDimensions();
+  const vmax = Math.max(width, height) / 100;
+  const image = useImage(sized(art, 200));
+  const { t1, t2, t3 } = useBlobClocks();
+
+  const big = 80 * vmax;
+  const small = 56 * vmax;
+  // Where each circle sits (Blobs' top/left/right/bottom), and its centre to turn about.
+  const b1 = { x: -24 * vmax, y: -32 * vmax, size: big };
+  const b2 = { x: width + 30 * vmax - big, y: height + 38 * vmax - big, size: big };
+  const b3 = { x: width * 0.28, y: height * 0.12, size: small };
+
+  const turn = (t: number, reverse: boolean, swell: number) => {
+    "worklet";
+    const scale = (1 + 0.12 * Math.sin(Math.PI * t)) * (1 + swell);
+    return [{ rotate: (reverse ? -2 : 2) * Math.PI * t }, { scale }] as Transforms3d;
+  };
+  const tr1 = useDerivedValue(() => turn(t1.value, false, 0.1 * kick(bass.value)));
+  const tr2 = useDerivedValue(() => turn(t2.value, true, 0.07 * kick(bass.value)));
+  const tr3 = useDerivedValue((): Transforms3d => [
+    { translateX: (-6 + 14 * t3.value) * vmax },
+    { translateY: (-4 + 10 * t3.value) * vmax },
+    { rotate: ((-20 + 55 * t3.value) * Math.PI) / 180 },
+    { scale: 1 + 0.16 * kick(bass.value) },
+  ]);
+  const op3 = useDerivedValue(() => 0.6 + 0.3 * kick(bass.value));
+
+  if (!image) return null;
+  return (
+    <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Group
+        layer={
+          <Paint>
+            <Blur blur={60} />
+            <ColorMatrix matrix={SATURATE} />
+          </Paint>
+        }
+      >
+        <SkiaBlob image={image} at={b1} transform={tr1} />
+        <SkiaBlob image={image} at={b2} transform={tr2} opacity={0.9} />
+        <SkiaBlob image={image} at={b3} transform={tr3} opacity={op3} />
+      </Group>
+    </Canvas>
+  );
+}
+
+function SkiaBlob({
+  image,
+  at,
+  transform,
+  opacity,
+}: {
+  image: SkImage;
+  at: { x: number; y: number; size: number };
+  transform: SharedValue<Transforms3d>;
+  opacity?: number | SharedValue<number>;
+}) {
+  const r = rect(at.x, at.y, at.size, at.size);
+  return (
+    <Group transform={transform} origin={{ x: at.x + at.size / 2, y: at.y + at.size / 2 }} opacity={opacity}>
+      <Group clip={rrect(r, at.size / 2, at.size / 2)}>
+        <SkiaImage image={image} x={r.x} y={r.y} width={at.size} height={at.size} fit="cover" />
+      </Group>
+    </Group>
   );
 }

@@ -20,6 +20,7 @@ import { Icon } from "@/ui/Icon";
 import { IconButton, Press } from "@/ui/Press";
 import { Screen } from "@/ui/Screen";
 import { Kicker, Text } from "@/ui/Text";
+import { iosShadow } from "@/ui/shadow";
 import { colors, bgAlpha } from "@/ui/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TOPBAR } from "@/shell/layout";
@@ -102,7 +103,7 @@ function Hero({ a }: { a: Artist }) {
       )}
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 20 }}>
         {!a.bannerUrl && a.imageUrl ? (
-          <View style={{ elevation: 16, shadowColor: "#000", borderRadius: 60 }}>
+          <View style={{ elevation: 16, shadowColor: "#000", ...iosShadow(16), borderRadius: 60 }}>
             <Artwork url={a.imageUrl} size={120} round />
           </View>
         ) : null}
@@ -221,7 +222,7 @@ function Body({ a }: { a: Artist }) {
             scaleTo={0.98}
             style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
           >
-            <View style={{ elevation: 12, shadowColor: "#000", borderRadius: 10 }}>
+            <View style={{ elevation: 12, shadowColor: "#000", ...iosShadow(12), borderRadius: 10 }}>
               <Artwork url={a.latest.artworkUrl} size={120} radius={10} px={400} />
             </View>
             <View style={{ flex: 1, gap: 4 }}>

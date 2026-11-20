@@ -4,6 +4,8 @@
 // on the page, and a cream accent. The artwork brings the colour.
 // Space comes from a 4px grid; sections sit 36-48 apart, items 12-20.
 
+import { Platform } from "react-native";
+
 export const colors = {
   chrome: "#0B0B0A", // the frame around everything (behind sheets, Now Playing)
   bg: "#131312", // the page
@@ -65,12 +67,40 @@ export const type = {
 
 export const space = { gutter: 20, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 
+/**
+ * A bundled font's name for `fontFamily`. Android finds embedded fonts by file name
+ * ("Outfit_700Bold"); iOS by the PostScript name inside the file ("Outfit-Bold").
+ */
+const POSTSCRIPT: Record<string, string> = {
+  Outfit_400Regular: "Outfit-Regular",
+  Outfit_500Medium: "Outfit-Medium",
+  Outfit_600SemiBold: "Outfit-SemiBold",
+  Outfit_700Bold: "Outfit-Bold",
+  Outfit_800ExtraBold: "Outfit-ExtraBold",
+  Fraunces_700Bold: "Fraunces-Bold",
+  PlayfairDisplay_700Bold: "PlayfairDisplay-Bold",
+  SpaceGrotesk_700Bold: "SpaceGrotesk-Bold",
+  BricolageGrotesque_700Bold: "BricolageGrotesque-Bold",
+  Nunito_800ExtraBold: "Nunito-ExtraBold",
+  JetBrainsMono_700Bold: "JetBrainsMono-Bold",
+  BebasNeue_400Regular: "BebasNeue-Regular",
+  Caveat_700Bold: "Caveat-Bold",
+  Silkscreen_400Regular: "Silkscreen-Regular",
+};
+
+export function font(file: string): string {
+  return Platform.OS === "ios" ? (POSTSCRIPT[file] ?? file) : file;
+}
+
+/** The system's monospaced font (Android calls it "monospace"; iOS has Menlo). */
+export const monospace = Platform.OS === "ios" ? "Menlo" : "monospace";
+
 export const fonts = {
-  400: "Outfit_400Regular",
-  500: "Outfit_500Medium",
-  600: "Outfit_600SemiBold",
-  700: "Outfit_700Bold",
-  800: "Outfit_800ExtraBold",
+  400: font("Outfit_400Regular"),
+  500: font("Outfit_500Medium"),
+  600: font("Outfit_600SemiBold"),
+  700: font("Outfit_700Bold"),
+  800: font("Outfit_800ExtraBold"),
 } as const;
 
 export type Weight = keyof typeof fonts;

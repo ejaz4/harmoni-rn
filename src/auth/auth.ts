@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import * as Device from "expo-device";
 import * as WebBrowser from "expo-web-browser";
 import Native from "harmoni-player";
+import { Platform } from "react-native";
 
 import { kv } from "@/lib/storage";
 import { ServerError, type FoundServer, type ServerMeta } from "./server";
@@ -9,7 +10,7 @@ import { ServerError, type FoundServer, type ServerMeta } from "./server";
 export { findServer, normalizeServer, ServerError, type FoundServer } from "./server";
 
 export const REDIRECT_URI = "com.ceccun.harmoni:/oauth";
-const CLIENT_NAME = "Harmoni for Android";
+const CLIENT_NAME = Platform.OS === "ios" ? "Harmoni for iOS" : "Harmoni for Android";
 
 function b64url(bytes: Uint8Array) {
   let bin = "";
@@ -97,7 +98,7 @@ export async function signIn(server: FoundServer): Promise<void> {
         client_id: clientId,
         redirect_uri: REDIRECT_URI,
         code_verifier: verifier,
-        device_name: (Device.modelName || "Android").slice(0, 60),
+        device_name: (Device.modelName || (Platform.OS === "ios" ? "iPhone" : "Android")).slice(0, 60),
       }).toString(),
     });
     const body = await res.json().catch(() => ({}));

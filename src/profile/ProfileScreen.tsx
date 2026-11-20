@@ -22,7 +22,7 @@ import { openMenu, toast } from "@/ui/overlays";
 import { IconButton, Press } from "@/ui/Press";
 import { Screen } from "@/ui/Screen";
 import { Text } from "@/ui/Text";
-import { colors, fonts } from "@/ui/theme";
+import { colors, font as fontName, fonts } from "@/ui/theme";
 import { Avatar } from "./Avatar";
 import { Banner } from "./Banner";
 import { FollowButton, FollowsYou } from "./people";
@@ -216,7 +216,7 @@ function Body({
   const editing = !!draft;
   const look = draft ?? draftOf(profile);
   const font = fontFor(look.font);
-  const family = font.family;
+  const family = font.family ? fontName(font.family) : undefined;
   const bannerH = insets.top + TOPBAR + 150;
   const path = profilePath(profile.user.username);
   const grid = useGridWidth();
@@ -572,7 +572,7 @@ function StylePanel({
                 size={16 * (f.scale ?? 1)}
                 weight={600}
                 color={on ? inkFor(look.accent) : colors.text}
-                style={f.family ? { fontFamily: f.family } : null}
+                style={f.family ? { fontFamily: fontName(f.family) } : null}
               >
                 {f.label}
               </Text>

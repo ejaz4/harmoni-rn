@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { AccessibilityInfo } from "react-native";
 import { makeMutable, useFrameCallback } from "react-native-reanimated";
 
+import { frameLoop } from "@/lib/frames";
 import { kv } from "@/lib/storage";
 
 /**
@@ -24,7 +25,7 @@ const STEP = 1000 / 60;
 export const bassBackdropOn = () => kv.get("settings.bassBackdrop", true);
 
 let users = 0;
-let frame = 0;
+let stop: (() => void) | null = null;
 let reduceMotion = false;
 AccessibilityInfo.isReduceMotionEnabled()
   .then((v) => (reduceMotion = v))
@@ -39,16 +40,16 @@ function poll() {
     v = [];
   }
   ahead.value = { at: Date.now(), v };
-  frame = requestAnimationFrame(poll);
 }
 
-/** Keeps `bass` live while mounted (the Now Playing sheet). */
+/** Keeps `bass` live while mounted (the Now Playing sheet) and the app is on screen. */
 export function useBass() {
   useEffect(() => {
-    if (users++ === 0) frame = requestAnimationFrame(poll);
+    if (users++ === 0) stop = frameLoop(poll);
     return () => {
       if (--users === 0) {
-        cancelAnimationFrame(frame);
+        stop?.();
+        stop = null;
         ahead.value = { at: 0, v: [] };
       }
     };

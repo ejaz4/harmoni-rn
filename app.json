@@ -8,6 +8,15 @@
     "scheme": "com.ceccun.harmoni",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#121212",
+    "ios": {
+      "bundleIdentifier": "com.ceccun.harmoni",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true },
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
     "android": {
       "package": "com.ceccun.harmoni",
       "adaptiveIcon": {
